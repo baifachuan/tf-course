@@ -1,0 +1,8 @@
+**/.DS_Store
+**/.idea
+Untitled*
+my_graph/*
+target
+*.log
+.ipynb_checkpoints/*
+graphs/*
