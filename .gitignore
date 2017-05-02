@@ -6,3 +6,4 @@ target
 *.log
 .ipynb_checkpoints/*
 graphs/*
+example/data/notMNIST.pickle
