@@ -12,3 +12,6 @@ with tf.Session() as sess:
         sess.run(z)
     print(tf.get_default_graph().as_graph_def())
     writer.close()
+
+
+tf.nn.softmax_cross_entropy_with_logits(pred, y)
