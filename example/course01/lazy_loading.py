@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+#tensorboard --logdir="./my_graph/l3" --port 6007
 # lazy loading
 x = tf.Variable(10, name='x')
 y = tf.Variable(20, name='y')
