@@ -1,0 +1,6 @@
+model_checkpoint_path: "mnist-convnet-179"
+all_model_checkpoint_paths: "mnist-convnet-139"
+all_model_checkpoint_paths: "mnist-convnet-149"
+all_model_checkpoint_paths: "mnist-convnet-159"
+all_model_checkpoint_paths: "mnist-convnet-169"
+all_model_checkpoint_paths: "mnist-convnet-179"
