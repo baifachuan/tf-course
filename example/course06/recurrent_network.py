@@ -35,12 +35,16 @@ n_hidden = 128 # hidden layer num of features
 n_classes = 10 # MNIST total classes (0-9 digits)
 
 # todo tf Graph input
-x =
-y =
+x = tf.placeholder("float", [None, n_steps, n_input])
+y = tf.placeholder("float", [None, n_classes])
 
 # todo Define weights and biases
-weights =
-biases =
+weights = {
+    'out': tf.Variable(tf.random_normal([n_hidden, n_classes]))
+}
+biases = {
+    'out': tf.Variable(tf.random_normal([n_classes]))
+}
 
 
 def RNN(x, weights, biases):
@@ -50,13 +54,13 @@ def RNN(x, weights, biases):
     # Required shape: 'n_steps' tensors list of shape (batch_size, n_input)
 
     # todo Unstack to get a list of 'n_steps' tensors of shape (batch_size, n_input)
-    x =
+    x = tf.unstack(x, n_steps, 1)
 
     # todo Define a lstm cell with tensorflow
-    lstm_cell =
+    lstm_cell = rnn.BasicLSTMCell(n_hidden, forget_bias=1.0)
 
     # todo  Get lstm cell output
-    outputs, states =
+    outputs, states = rnn.static_rnn(lstm_cell, x, dtype=tf.float32)
 
     # Linear activation, using rnn inner loop last output
     return tf.matmul(outputs[-1], weights['out']) + biases['out']
@@ -64,15 +68,15 @@ def RNN(x, weights, biases):
 pred = RNN(x, weights, biases)
 
 # todo  Define loss and optimizer
-cost =
-optimizer =
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
+optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
 
 # todo  Evaluate model
-correct_pred =
-accuracy =
+correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
 # todo Initializing the variables
-init =
+init = tf.global_variables_initializer()
 
 # Launch the graph
 with tf.Session() as sess:

@@ -6,19 +6,19 @@ N_SAMPLES = 1000
 NUM_THREADS = 4
 # Generating some simple data
 # todo create 1000 random samples, each is a 1D array from the normal distribution (10, 1)
-data =
+train = 10 * np.random.randn(N_SAMPLES, 4) + 1
 # todo create 1000 random labels of 0 and 1
-target =
+labels = np.random.randint(1, 2, size=N_SAMPLES)
 # todo create FIFOQueue
 queue = tf.FIFOQueue(capacity=50, dtypes=[tf.float32, tf.int32], shapes=[[4], []])
 
-enqueue_op = queue.enqueue_many([data, target])
+enqueue_op = queue.enqueue_many([train, labels])
 data_sample, label_sample = queue.dequeue()
 
 # create ops that do something with data_sample and label_sample
 
 # todo create NUM_THREADS to do enqueue
-qr =
+qr = tf.train.QueueRunner(queue, [enqueue_op] * NUM_THREADS)
 with tf.Session() as sess:
     # create a coordinator, launch the queue runner threads.
     coord = tf.train.Coordinator()
