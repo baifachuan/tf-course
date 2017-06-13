@@ -385,13 +385,7 @@ class NeuralGPU(object):
       return (step, dec_write, out_write, mloss + mem_loss, nupd_in + nupd,
               out_idx, beam_cost)
 
-    # Main model construction.
-    gpu_outputs = []
-    gpu_losses = []
-    gpu_grad_norms = []
-    grads_list = []
-    gpu_out_idx = []
-    self.after_enc_step = []
+    #todo Main model construction.
     for gpu in range(num_gpus):  # Multi-GPU towers, average gradients later.
       length = self.length_tensor
       length_float = tf.cast(length, tf.float32)
@@ -401,56 +395,21 @@ class NeuralGPU(object):
       gpu_losses.append([])
       gpu_grad_norms.append([])
       with tf.name_scope("gpu%d" % gpu), tf.device("/gpu:%d" % gpu):
-        # Main graph creation loop.
-        data.print_out("Creating model.")
-        start_time = time.time()
+        #todo Main graph creation loop.
 
-        # Embed inputs and calculate mask.
-        with tf.device("/cpu:0"):
-          tgt_shape = tf.shape(tf.squeeze(gpu_target[gpu], [1]))
-          weights = tf.where(tf.squeeze(gpu_target[gpu], [1]) > 0,
-                             tf.ones(tgt_shape), tf.zeros(tgt_shape))
+        #todo Embed inputs and calculate mask.
 
-          # Embed inputs and targets.
-          with tf.control_dependencies([e0]):
-            start = tf.gather(emb_weights, gpu_input[gpu])  # b x h x l x nmaps
-            gpu_targets_tn = gpu_target[gpu]  # b x 1 x len
-            if beam_size > 0:
-              embedded_targets_tn = tf.gather(target_emb_weights,
-                                              gpu_targets_tn)
-              embedded_targets_tn = tf.transpose(
-                  embedded_targets_tn, [2, 0, 1, 3])  # len x b x 1 x nmaps
-              embedded_targets_tn = tf.concat(axis=2, values=[embedded_targets_tn] * height)
+          #todo Embed inputs and targets.
 
-        # First image comes from start by applying convolution and adding 0s.
-        start = tf.transpose(start, [0, 2, 1, 3])  # Now b x len x h x vec_s
-        first = conv_linear(start, 1, 1, vec_size, nmaps, 1, True, 0.0, "input")
-        first = layer_norm(first, nmaps, "input")
+        #todo First image comes from start by applying convolution and adding 0s.
 
-        # Computation steps.
-        keep_prob = dropout * 3.0 / tf.sqrt(length_float)
-        keep_prob = 1.0 - self.do_training * keep_prob
-        act_noise_scale = act_noise * self.do_training
+        #todo Computation steps.
 
-        # Start with a convolutional gate merging previous step.
-        step = conv_gru([gpu_prev_step[gpu]], first,
-                        kw, kh, nmaps, 1, cutoff, "first", do_layer_norm)
+        #todo Start with a convolutional gate merging previous step.
 
-        # This is just for running a baseline RNN seq2seq model.
-        if do_rnn:
-          self.after_enc_step.append(step)  # Not meaningful here, but needed.
-          def lstm_cell():
-            return tf.contrib.rnn.BasicLSTMCell(height * nmaps)
-          cell = tf.contrib.rnn.MultiRNNCell(
-              [lstm_cell() for _ in range(nconvs)])
-          with tf.variable_scope("encoder"):
-            encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
-                cell, tf.reshape(step, [batch_size, length, height * nmaps]),
-                dtype=tf.float32, time_major=False)
+        #todo This is just for running a baseline RNN seq2seq model.
 
-          # Attention.
-          attn = tf.layers.dense(
-              encoder_outputs, height * nmaps, name="attn1")
+          #todo Attention.
 
           # pylint: disable=cell-var-from-loop
           @function.Defun(noinline=True)
@@ -510,7 +469,7 @@ class NeuralGPU(object):
           outputs = tf.reshape(outputs, [length, batch_size, noclass])
           gpu_out_idx.append(tf.argmax(outputs, 2))
         else:  # Here we go with the Neural GPU.
-          # Encoder.
+          #todo Encoder.
           enc_length = length
           step = enc_step(step)  # First step hard-coded.
           # pylint: disable=cell-var-from-loop
@@ -527,7 +486,7 @@ class NeuralGPU(object):
 
           self.after_enc_step.append(step)
 
-          # Decoder.
+          #todo Decoder.
           if beam_size > 0:
             output_ta = tf.TensorArray(
                 dtype=tf.float32, size=length, dynamic_size=False,
