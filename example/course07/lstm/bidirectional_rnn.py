@@ -1,3 +1,11 @@
+'''
+A Bidirectional Recurrent Neural Network (LSTM) implementation example using TensorFlow library.
+This example is using the MNIST database of handwritten digits (http://yann.lecun.com/exdb/mnist/)
+Long Short Term Memory paper: http://deeplearning.cs.cmu.edu/pdfs/Hochreiter97_lstm.pdf
+
+Author: Aymeric Damien
+Project: https://github.com/aymericdamien/TensorFlow-Examples/
+'''
 
 from __future__ import print_function
 
@@ -7,7 +15,7 @@ import numpy as np
 
 # Import MNIST data
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("../../data/mnist", one_hot=True)
+mnist = input_data.read_data_sets("../data/mnist", one_hot=True)
 
 '''
 To classify images using a bidirectional recurrent neural network, we consider
@@ -21,23 +29,23 @@ training_iters = 1000
 batch_size = 128
 display_step = 10
 
-#todo Network Parameters
-n_input =  # MNIST data input (img shape: 28*28)
-n_steps =  # timesteps
-n_hidden =  # hidden layer num of features
-n_classes =  # MNIST total classes (0-9 digits)
+# Network Parameters
+n_input = 28 # MNIST data input (img shape: 28*28)
+n_steps = 28 # timesteps
+n_hidden = 128 # hidden layer num of features
+n_classes = 10 # MNIST total classes (0-9 digits)
 
-#todo tf Graph input
-x =
-y =
+# tf Graph input
+x = tf.placeholder("float", [None, n_steps, n_input])
+y = tf.placeholder("float", [None, n_classes])
 
-#todo Define weights
+# Define weights
 weights = {
     # Hidden layer weights => 2*n_hidden because of forward + backward cells
-    'out':
+    'out': tf.Variable(tf.random_normal([2*n_hidden, n_classes]))
 }
 biases = {
-    'out':
+    'out': tf.Variable(tf.random_normal([n_classes]))
 }
 
 
@@ -47,41 +55,42 @@ def BiRNN(x, weights, biases):
     # Current data input shape: (batch_size, n_steps, n_input)
     # Required shape: 'n_steps' tensors list of shape (batch_size, n_input)
 
-    #todo Permuting batch_size and n_steps
-    x =
-    #todo Reshape to (n_steps*batch_size, n_input)
-    x =
-    #todo Split to get a list of 'n_steps' tensors of shape (batch_size, n_input)
-    x =
+    # Permuting batch_size and n_steps
+    x = tf.transpose(x, [1, 0, 2])
+    # Reshape to (n_steps*batch_size, n_input)
+    x = tf.reshape(x, [-1, n_input])
+    # Split to get a list of 'n_steps' tensors of shape (batch_size, n_input)
+    x = tf.split(x, n_steps, 0)
 
     # Define lstm cells with tensorflow
-    #todo Forward direction cell
-    lstm_fw_cell =
-    #todo Backward direction cell
-    lstm_bw_cell =
+    # Forward direction cell
+    lstm_fw_cell = rnn.BasicLSTMCell(n_hidden, forget_bias=1.0)
+    # Backward direction cell
+    lstm_bw_cell = rnn.BasicLSTMCell(n_hidden, forget_bias=1.0)
 
-    #todo Get lstm cell output
+    # Get lstm cell output
     try:
-        outputs, _, _ =
+        outputs, _, _ = rnn.static_bidirectional_rnn(lstm_fw_cell, lstm_bw_cell, x,
+                                              dtype=tf.float32)
     except Exception: # Old TensorFlow version only returns outputs not states
         outputs = rnn.static_bidirectional_rnn(lstm_fw_cell, lstm_bw_cell, x,
                                         dtype=tf.float32)
 
-    #todo  Linear activation, using rnn inner loop last output
-    return
+    # Linear activation, using rnn inner loop last output
+    return tf.matmul(outputs[-1], weights['out']) + biases['out']
 
 pred = BiRNN(x, weights, biases)
 
-#todo Define loss and optimizer
-cost =
-optimizer =
+# Define loss and optimizer
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
-#todo Evaluate model
-correct_pred =
-accuracy =
+# Evaluate model
+correct_pred = tf.equal(tf.argmax(pred,1), tf.argmax(y,1))
+accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
-#todo Initializing the variables
-init =
+# Initializing the variables
+init = tf.global_variables_initializer()
 
 # Launch the graph
 with tf.Session() as sess:
